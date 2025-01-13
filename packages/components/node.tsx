@@ -210,9 +210,9 @@ export function Node({
 }: NodeProps<Node> & { preview?: boolean }) {
 	const targetHandles = useMemo(() => {
 		if (data.node.content.type === "textGeneration") {
-			return [
-				...data.node.content.sources,
-			].filter((item) => item !== undefined);
+			return [...data.node.content.sources].filter(
+				(item) => item !== undefined,
+			);
 		}
 		return [];
 	}, [data.node]);
