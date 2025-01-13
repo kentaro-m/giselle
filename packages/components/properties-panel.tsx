@@ -36,11 +36,17 @@ import { parse, remove } from "../actions";
 import { vercelBlobFileFolder } from "../constants";
 import { useDeveloperMode } from "../contexts/developer-mode";
 import { useExecution } from "../contexts/execution";
-import { useArtifact, useGraph, useSelectedNode } from "../contexts/graph";
+import {
+	useArtifact,
+	useGraph,
+	useNode,
+	useSelectedNode,
+} from "../contexts/graph";
 import { usePropertiesPanel } from "../contexts/properties-panel";
 import { useToast } from "../contexts/toast";
 import { textGenerationPrompt } from "../lib/prompts";
 import {
+	createArtifactId,
 	createConnectionId,
 	createFileId,
 	createNodeHandleId,
@@ -56,11 +62,13 @@ import {
 import type {
 	FileContent,
 	FileData,
+	FileId,
 	FilesContent,
 	Node,
 	NodeHandle,
 	NodeId,
 	Text,
+	TextArtifactObject,
 	TextContent,
 	TextGenerateActionContent,
 } from "../types";
