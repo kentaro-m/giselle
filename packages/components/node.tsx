@@ -211,7 +211,6 @@ export function Node({
 	const targetHandles = useMemo(() => {
 		if (data.node.content.type === "textGeneration") {
 			return [
-				data.node.content.requirement,
 				...data.node.content.sources,
 			].filter((item) => item !== undefined);
 		}
