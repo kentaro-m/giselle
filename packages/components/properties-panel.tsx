@@ -21,7 +21,7 @@ import {
 	TrashIcon,
 	UndoIcon,
 } from "lucide-react";
-import {
+import React, {
 	type ComponentProps,
 	type DetailedHTMLProps,
 	type FC,
@@ -31,6 +31,8 @@ import {
 	useId,
 	useMemo,
 	useState,
+	useRef,
+	RefObject,
 } from "react";
 import { parse, remove } from "../actions";
 import { vercelBlobFileFolder } from "../constants";
@@ -100,9 +102,10 @@ import { Tooltip } from "./tooltip";
 function PropertiesPanelContentBox({
 	children,
 	className,
-}: { children: ReactNode; className?: string }) {
+	onBlur,
+}: { children: ReactNode; className?: string, onBlur?: (event: React.FocusEvent<HTMLDivElement>) => void }) {
 	return (
-		<div className={clsx("px-[24px] py-[8px]", className)}>{children}</div>
+		<div className={clsx("px-[24px] py-[8px]", className)} onBlur={(event) => onBlur && onBlur(event)}>{children}</div>
 	);
 }
 
@@ -262,7 +265,7 @@ DialogFooter.displayName = "DialogHeader";
 export function PropertiesPanel() {
 	const { graph, dispatch, flush } = useGraph();
 	const selectedNode = useSelectedNode();
-	const { open, setOpen, tab, setTab } = usePropertiesPanel();
+	const { open, setOpen, tab, setTab, isBlurred, setIsBlurred } = usePropertiesPanel();
 	const { executeNode } = useExecution();
 	return (
 		<div
@@ -278,6 +281,14 @@ export function PropertiesPanel() {
 					className="h-full overflow-y-hidden flex flex-col"
 					value={tab}
 					onValueChange={(v) => setTab(v)}
+					onBlur={() => {
+						setIsBlurred(true);
+						console.log("blurred");
+					}}
+					onFocus={() => {
+						setIsBlurred(false);
+						console.log("focused");
+					}}
 				>
 					<div className="relative z-10 flex justify-between items-center pl-[16px] pr-[24px] py-[10px] h-[56px]">
 						<button
@@ -1523,21 +1534,66 @@ function TabContentText({
 	content: TextContent;
 	onContentChange?: (content: TextContent) => void;
 }) {
+	const [text, setText] = useState(content.text);
+	// const ref = useRef(null);
 	return (
-		<div className="relative z-10 flex flex-col gap-[2px] h-full">
-			<PropertiesPanelContentBox className="h-full flex">
+		<div
+			className="relative z-10 flex flex-col gap-[2px] h-full"
+		>
+			<PropertiesPanelContentBox
+				className="h-full flex"
+				onBlur={() => {
+					console.log('onBlur');
+					// if (ref.current === null) {
+					// 	return;
+					// }
+					if (content.text !== text) {
+						onContentChange?.({
+							...content,
+							text,
+						});
+					}
+				}}
+
+
+				// ref={(el) => {
+				// 	function handleBlur2() {
+				// 		if (el === null) {
+				// 			return;
+				// 		}
+				// 		console.log("content.text", content.text);
+				// 		console.log("text", text);
+				// 		if (content.text !== text) {
+				// 			onContentChange?.({
+				// 				...content,
+				// 				text,
+				// 			});
+				// 		}
+				// 	}
+				// 	el?.addEventListener("blur", handleBlur2);
+				// 	return () => {
+				// 		el?.removeEventListener("blur", handleBlur2);
+				// 	};
+				// }}
+			>
 				<textarea
 					name="text"
 					id="text"
 					className="flex-1 text-[14px] bg-[hsla(222,21%,40%,0.3)] rounded-[8px] text-white p-[14px] font-rosart outline-none resize-none  my-[16px]"
 					defaultValue={content.text}
+					onChange={(e) => {
+						setText(e.target.value);
+					}}
 					ref={(el) => {
 						function handleBlur() {
+							console.log("content.text", content.text);
+							console.log("el.value", el?.value);
 							if (el?.value != null && content.text !== el.value) {
 								onContentChange?.({
 									...content,
 									text: el.value,
 								});
+								setText(el.value);
 							}
 						}
 						el?.addEventListener("blur", handleBlur);

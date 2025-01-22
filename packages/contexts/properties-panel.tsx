@@ -7,6 +7,8 @@ interface PropertiesPanelContextType {
 	setOpen: (open: boolean) => void;
 	tab: string;
 	setTab: (tab: string) => void;
+	isBlurred: boolean;
+	setIsBlurred: (isBlurred: boolean) => void;
 }
 
 const PropertiesPanelContext = createContext<
@@ -26,12 +28,15 @@ export function PropertiesPanelProvider({
 }: PropertiesPanelProviderProps) {
 	const [tab, setTab] = useState<string>(defaultTab);
 	const [open, setOpen] = useState<boolean>(defaultOpen);
+	const [isBlurred, setIsBlurred] = useState<boolean>(false);
 
 	const value = {
 		open,
 		setOpen,
 		tab,
 		setTab,
+		isBlurred,
+		setIsBlurred,
 	};
 
 	return (
