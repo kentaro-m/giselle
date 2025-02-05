@@ -323,6 +323,49 @@ export function PropertiesPanel() {
 									{selectedNode.name}
 								</div>
 							</div>
+							{isText(selectedNode) && (
+								<div className="">
+									<button
+										type="button"
+										className="relative z-10 rounded-[8px] shadow-[0px_0px_3px_0px_#FFFFFF40_inset] py-[3px] px-[8px] bg-black-80 text-black-30 font-rosart text-[14px] disabled:bg-black-40"
+										onClick={() => {
+											dispatch([
+												{
+													type: "addNode",
+													input: {
+														node: {
+															id: createNodeId(),
+															name: `Copy of ${selectedNode.name}`,
+															position: {
+																x: selectedNode.position.x + 400,
+																y: selectedNode.position.y + 100,
+															},
+															selected: true,
+															type: "variable",
+															content: {
+																type: "text",
+																text: selectedNode.content.text,
+															},
+														},
+													},
+												},
+												{
+													type: "updateNode",
+													input: {
+														nodeId: selectedNode.id,
+														node: {
+															...selectedNode,
+															selected: false,
+														},
+													},
+												},
+											]);
+										}}
+									>
+										Copy
+									</button>
+								</div>
+							)}
 							{selectedNode.content.type === "textGeneration" && (
 								<div className="">
 									<button
