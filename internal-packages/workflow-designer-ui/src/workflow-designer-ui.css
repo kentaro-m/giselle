@@ -1,0 +1,61 @@
+.mask-fill {
+	-webkit-mask-image: linear-gradient(#fff 0 0), linear-gradient(#fff 0 0);
+	-webkit-mask-clip: padding-box, border-box;
+	-webkit-mask-composite: destination-out;
+}
+
+.giselle-workflow-editor .react-flow__pane.selection {
+	cursor: default;
+}
+.giselle-workflow-editor[data-floating-node="true"]
+	.react-flow__pane.selection {
+	cursor: crosshair;
+}
+.giselle-workflow-editor .react-flow__node.selectable {
+	cursor: default;
+}
+.giselle-workflow-editor .react-flow__node.draggable.dragging {
+	cursor: default;
+}
+.giselle-workflow-editor .react-flow__edge.selectable {
+	cursor: default;
+}
+
+@theme {
+	--animate-pop-pop-1: pop-pop 2.1s steps(1) infinite;
+	--animate-pop-pop-2: pop-pop 2.1s steps(1) 0.7s infinite;
+	--animate-pop-pop-3: pop-pop 2.1s steps(1) 1.4s infinite;
+	@keyframes pop-pop {
+		0% {
+			transform: translateY(0);
+		}
+		10% {
+			transform: translateY(-4px);
+			color: var(--color-white-900);
+		}
+		30% {
+			transform: translateY(0);
+			color: inherit;
+		}
+	}
+
+	--animate-follow-through-overlap-spin: follow-through-overlap-spin 1.75s
+		ease-out infinite;
+	@keyframes follow-through-overlap-spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		40% {
+			transform: rotate(-400deg);
+		}
+		60% {
+			transform: rotate(-300deg);
+		}
+		80% {
+			transform: rotate(-370deg);
+		}
+		100% {
+			transform: rotate(-360deg);
+		}
+	}
+}
