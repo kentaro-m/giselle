@@ -4,10 +4,6 @@ import {
 	InputId,
 	OutputId,
 	type TextGenerationNode,
-	type VariableNode,
-	isFileNode,
-	isTextGenerationNode,
-	isTextNode,
 } from "@giselle-sdk/data-type";
 import { isJsonContent, jsonContentToText } from "@giselle-sdk/text-editor";
 import clsx from "clsx/lite";
@@ -25,9 +21,7 @@ import {
 import { GeneratedContentIcon, PdfFileIcon, PromptIcon } from "../../../icons";
 import { EmptyState } from "../../../ui/empty-state";
 import {
-	type ConnectedSource,
 	type Source,
-	filterSources,
 	useConnectedSources,
 	useSourceCategories,
 } from "./sources";
@@ -67,7 +61,7 @@ function SourceSelect({
 			<Popover.Portal>
 				<Popover.Content
 					className={clsx(
-						"relative w-[300px] h-[300px] overflow-y-auto py-[8px]",
+						"relative w-[300px] max-h-[300px] overflow-y-auto py-[8px]",
 						"rounded-[8px] border-[1px] backdrop-blur-[8px]",
 						"shadow-[-2px_-1px_0px_0px_rgba(0,0,0,0.1),1px_1px_8px_0px_rgba(0,0,0,0.25)]",
 					)}
@@ -253,7 +247,7 @@ export function SourcesPanel({
 	const sources = useMemo<Source[]>(() => {
 		const tmpSources: Source[] = [];
 		const connections = data.connections.filter(
-			(connection) => connection.inputNodeId === textGenerationNode.id,
+			(connection) => connection.inputNode.id === textGenerationNode.id,
 		);
 		for (const node of data.nodes) {
 			if (node.id === textGenerationNode.id) {
@@ -278,7 +272,7 @@ export function SourcesPanel({
 		(connectOutputIds: OutputId[]) => {
 			const currentConnectedOutputIds = data.connections
 				.filter(
-					(connection) => connection.inputNodeId === textGenerationNode.id,
+					(connection) => connection.inputNode.id === textGenerationNode.id,
 				)
 				.map((connection) => connection.outputId);
 			const newConnectOutputIdSet = new Set(connectOutputIds);
@@ -303,12 +297,10 @@ export function SourcesPanel({
 					inputs: [...textGenerationNode.inputs, newInput],
 				});
 				addConnection({
-					inputNodeId: textGenerationNode.id,
+					inputNode: textGenerationNode,
 					inputId: newInput.id,
-					inputNodeType: textGenerationNode.type,
 					outputId,
-					outputNodeId: outputNode.id,
-					outputNodeType: outputNode.type,
+					outputNode: outputNode,
 				});
 			}
 
@@ -319,7 +311,7 @@ export function SourcesPanel({
 			for (const outputId of removedOutputIdSet) {
 				const connection = data.connections.find(
 					(connection) =>
-						connection.inputNodeId === textGenerationNode.id &&
+						connection.inputNode.id === textGenerationNode.id &&
 						connection.outputId === outputId,
 				);
 				if (connection === undefined) {
@@ -390,8 +382,8 @@ export function SourcesPanel({
 									<GeneratedContentIcon className="size-[24px] text-white-900" />
 								}
 								key={source.connection.id}
-								title={source.output.label}
-								subtitle={`${source.node.name ?? source.node.content.llm.model} - ${source.node.content.llm.provider}`}
+								title={`${source.node.name ?? source.node.content.llm.model} / ${source.output.label}`}
+								subtitle={source.node.content.llm.provider}
 								onRemove={() => handleRemove(source.connection)}
 							/>
 						))}
@@ -402,12 +394,15 @@ export function SourcesPanel({
 						{connectedSources.variable.map((source) => {
 							switch (source.node.content.type) {
 								case "text": {
-									const jsonContentLikeString = JSON.parse(
-										source.node.content.text,
-									);
-									const text = isJsonContent(jsonContentLikeString)
-										? jsonContentToText(jsonContentLikeString)
-										: source.node.content.text;
+									let text = source.node.content.text;
+									if (text.length > 0) {
+										const jsonContentLikeString = JSON.parse(
+											source.node.content.text,
+										);
+										if (isJsonContent(jsonContentLikeString)) {
+											text = jsonContentToText(jsonContentLikeString);
+										}
+									}
 
 									return (
 										<SourceListItem
@@ -415,7 +410,7 @@ export function SourcesPanel({
 												<PromptIcon className="size-[24px] text-white-900" />
 											}
 											key={source.connection.id}
-											title={source.node.name ?? "Text"}
+											title={`${source.node.name ?? "Text"} / ${source.output.label}`}
 											subtitle={text}
 											onRemove={() => handleRemove(source.connection)}
 										/>
@@ -428,7 +423,7 @@ export function SourcesPanel({
 												<PdfFileIcon className="size-[24px] text-white-900" />
 											}
 											key={source.connection.id}
-											title={source.node.name ?? "PDF Files"}
+											title={`${source.node.name ?? "PDF Files"} / ${source.output.label}`}
 											subtitle={`${source.node.content.files.length} ${pluralize("file", source.node.content.files.length)}`}
 											onRemove={() => handleRemove(source.connection)}
 										/>

@@ -33,7 +33,7 @@ export function TextGenerationNodePropertiesPanel({
 }) {
 	const { data, updateNodeDataContent, updateNodeData, setUiNodeState } =
 		useWorkflowDesigner();
-	const { startGeneration } = useGenerationController();
+	const { startGeneration, isGenerating } = useGenerationController();
 	const { all: connectedSources } = useConnectedSources(node);
 
 	const uiState = useMemo(() => data.ui.nodeState[node.id], [data, node.id]);
@@ -75,16 +75,18 @@ export function TextGenerationNodePropertiesPanel({
 				}}
 				action={
 					<Button
+						loading={isGenerating}
 						type="button"
 						onClick={() => {
 							generateText();
 						}}
+						className="w-[150px]"
 					>
-						<span>Generate</span>
-						<div className="flex items-center text-[12px]">
+						<span>{isGenerating ? "Generating..." : "Generate"}</span>
+						<kbd className="flex items-center text-[12px]">
 							<CommandIcon className="size-[12px]" />
 							<CornerDownLeft className="size-[12px]" />
-						</div>
+						</kbd>
 					</Button>
 				}
 			/>
@@ -104,7 +106,7 @@ export function TextGenerationNodePropertiesPanel({
 						>
 							<Tabs.List
 								className={clsx(
-									"flex gap-[16px] text-[14px]",
+									"flex gap-[16px] text-[14px] font-accent",
 									"**:p-[4px] **:border-b **:cursor-pointer",
 									"**:data-[state=active]:text-white-900 **:data-[state=active]:border-white-900",
 									"**:data-[state=inactive]:text-black-400 **:data-[state=inactive]:border-transparent",
@@ -114,10 +116,16 @@ export function TextGenerationNodePropertiesPanel({
 								<Tabs.Trigger value="model">Model</Tabs.Trigger>
 								<Tabs.Trigger value="sources">Sources</Tabs.Trigger>
 							</Tabs.List>
-							<Tabs.Content value="prompt" className="flex-1 flex flex-col">
+							<Tabs.Content
+								value="prompt"
+								className="flex-1 flex flex-col overflow-hidden"
+							>
 								<PromptPanel node={node} />
 							</Tabs.Content>
-							<Tabs.Content value="model" className="flex-1 flex flex-col">
+							<Tabs.Content
+								value="model"
+								className="flex-1 flex flex-col overflow-y-auto"
+							>
 								{node.content.llm.provider === "openai" && (
 									<OpenAIModelPanel
 										openai={node.content.llm}
@@ -152,7 +160,10 @@ export function TextGenerationNodePropertiesPanel({
 									/>
 								)}
 							</Tabs.Content>
-							<Tabs.Content value="sources" className="flex-1 flex flex-col">
+							<Tabs.Content
+								value="sources"
+								className="flex-1 flex flex-col overflow-y-auto"
+							>
 								<SourcesPanel node={node} />
 							</Tabs.Content>
 						</Tabs.Root>

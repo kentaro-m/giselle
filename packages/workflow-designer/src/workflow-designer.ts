@@ -4,6 +4,7 @@ import {
 	type InputId,
 	type Node,
 	NodeId,
+	type NodeReference,
 	NodeUIState,
 	type OutputId,
 	type UploadedFileData,
@@ -46,6 +47,7 @@ export function WorkflowDesigner({
 	let connections = defaultValue.connections;
 	const ui = defaultValue.ui;
 	let editingWorkflows = defaultValue.editingWorkflows;
+	let name = defaultValue.name;
 	function updateWorkflowMap() {
 		editingWorkflows = Array.from(
 			buildWorkflowMap(
@@ -70,6 +72,7 @@ export function WorkflowDesigner({
 			id: defaultValue.id,
 			nodes,
 			connections,
+			name,
 			ui,
 			editingWorkflows,
 			schemaVersion: "20250221",
@@ -81,28 +84,30 @@ export function WorkflowDesigner({
 	}
 	function addConnection({
 		outputId,
-		outputNodeId,
-		outputNodeType,
-		inputNodeId,
-		inputNodeType,
+		outputNode,
 		inputId,
+		inputNode,
 	}: {
-		outputNodeId: NodeId;
-		outputNodeType: Node["type"];
+		outputNode: Node;
 		outputId: OutputId;
-		inputNodeId: NodeId;
-		inputNodeType: Node["type"];
+		inputNode: Node;
 		inputId: InputId;
 	}) {
 		connections = [
 			...connections,
 			{
 				id: ConnectionId.generate(),
-				outputNodeId,
-				outputNodeType,
+				outputNode: {
+					id: outputNode.id,
+					type: outputNode.type,
+					content: { type: outputNode.content.type },
+				} as NodeReference,
 				outputId,
-				inputNodeId,
-				inputNodeType,
+				inputNode: {
+					id: inputNode.id,
+					type: inputNode.type,
+					content: { type: inputNode.content.type },
+				} as NodeReference,
 				inputId,
 			},
 		];
@@ -161,6 +166,11 @@ export function WorkflowDesigner({
 		const result = await callGetLLMProvidersApi({ api: getLLMProvidersApi });
 		return result.llmProviders;
 	}
+
+	function updateName(newName: string | undefined) {
+		name = newName;
+	}
+
 	return {
 		addNode,
 		addConnection,
@@ -174,5 +184,6 @@ export function WorkflowDesigner({
 		saveWorkspace,
 		removeFile,
 		getAvailableLLMProviders,
+		updateName,
 	};
 }

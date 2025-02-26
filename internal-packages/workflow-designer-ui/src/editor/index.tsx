@@ -32,6 +32,8 @@ import {
 } from "./tool";
 import "@xyflow/react/dist/style.css";
 import { OutputId } from "@giselle-sdk/data-type";
+import { edgeTypes } from "./connector";
+import { type ConnectorType, GradientDef } from "./connector/component";
 
 function NodeCanvas() {
 	const {
@@ -43,7 +45,10 @@ function NodeCanvas() {
 		updateNodeData,
 		addNode,
 	} = useWorkflowDesigner();
-	const reactFlowInstance = useReactFlow();
+	const reactFlowInstance = useReactFlow<
+		GiselleWorkflowDesignerNode,
+		ConnectorType
+	>();
 	const updateNodeInternals = useUpdateNodeInternals();
 	const { selectedTool, reset } = useToolbar();
 	useEffect(() => {
@@ -60,7 +65,7 @@ function NodeCanvas() {
 						position: { x: nodeState.position.x, y: nodeState.position.y },
 						selected: nodeState.selected,
 						data: { nodeData: nodeData },
-					};
+					} as GiselleWorkflowDesignerNode;
 				})
 				.filter((result) => result !== null),
 		);
@@ -70,20 +75,25 @@ function NodeCanvas() {
 		reactFlowInstance.setEdges(
 			data.connections.map((connection) => ({
 				id: connection.id,
-				source: connection.outputNodeId,
+				type: "giselleConnector",
+				source: connection.outputNode.id,
 				sourceHandle: connection.outputId,
-				target: connection.inputNodeId,
+				target: connection.inputNode.id,
 				targetHandle: connection.inputId,
+				data: {
+					connection,
+				},
 			})),
 		);
 	}, [data, reactFlowInstance.setEdges]);
 	return (
-		<ReactFlow<GiselleWorkflowDesignerNode>
+		<ReactFlow<GiselleWorkflowDesignerNode, ConnectorType>
 			className="giselle-workflow-editor"
 			colorMode="dark"
 			defaultNodes={[]}
 			defaultEdges={[]}
 			nodeTypes={nodeTypes}
+			edgeTypes={edgeTypes}
 			defaultViewport={data.ui.viewport}
 			onMoveEnd={(_, viewport) => {
 				setUiViewport(viewport);
@@ -97,12 +107,12 @@ function NodeCanvas() {
 						}
 						case "remove": {
 							for (const connection of data.connections) {
-								if (connection.outputNodeId !== nodeChange.id) {
+								if (connection.outputNode.id !== nodeChange.id) {
 									continue;
 								}
 								deleteConnection(connection.id);
 								const connectedNode = data.nodes.find(
-									(node) => node.id === connection.inputNodeId,
+									(node) => node.id === connection.inputNode.id,
 								);
 								if (connectedNode === undefined) {
 									continue;
@@ -393,7 +403,7 @@ export function Editor() {
 		}
 	});
 	return (
-		<div className="flex-1">
+		<div className="flex-1 overflow-hidden font-sans">
 			<ReactFlowProvider>
 				<ToolbarContextProvider>
 					<MousePositionProvider>
@@ -421,7 +431,7 @@ export function Editor() {
 								defaultSize={0}
 							>
 								{selectedNodes.length === 1 && (
-									<div className="flex-1">
+									<div className="flex-1 overflow-hidden">
 										<PropertiesPanel />
 									</div>
 								)}
@@ -430,6 +440,7 @@ export function Editor() {
 						<KeyboardShortcuts />
 					</MousePositionProvider>
 				</ToolbarContextProvider>
+				<GradientDef />
 			</ReactFlowProvider>
 		</div>
 	);

@@ -31,17 +31,17 @@
 
 ## Tasks
 
+- [ ] Add setting button to title
+- [ ] Rework node select intereaction
+- [ ] Show unable sources
 - [ ] Auto detect storage backend
-- [ ] Workflow View
+- [ ] Create exention for a source
 - [ ] Update text node icon
-- [ ] Make fill yellow for connected file node port
-- [ ] Styling connector
 - [ ] API Middleware
 - [ ] API Auth
 - [ ] API Rate Limit
 - [ ] Add to do comment llmProviders property
 - [ ] Handling error in file upload
-- [ ] Better font
 - [ ] Cancel button
 - [ ] LLM Provider from .env
 - [ ] Undo/Redo for prompt editor
@@ -57,6 +57,16 @@
 
 ## Done
 
+- [x] Make fill yellow for connected file node port
+- [x] Styling connector
+- [x] Add title
+- [x] Better font(base: Geist, accent: Hubot)
+- [x] Fix layout of text node
+- [x] Improve layout of gen node's prompt tab
+- [x] Show running job
+- [x] Show running state on run view
+- [x] Workflow View
+- [x] Show flow selector if workspace has multiple flows
 - [x] Markdown styling
 - [x] Add generate text short cut
 - [x] Set viewport to storage
