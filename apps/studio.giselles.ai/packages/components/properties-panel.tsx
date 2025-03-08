@@ -35,7 +35,9 @@ import { vercelBlobFileFolder } from "../constants";
 import { useDeveloperMode } from "../contexts/developer-mode";
 import { useExecution } from "../contexts/execution";
 import {
+	type GraphAction,
 	useArtifact,
+	useConnections,
 	useGraph,
 	useNode,
 	useSelectedNode,
@@ -260,6 +262,9 @@ export function PropertiesPanel() {
 	const { graph, dispatch, flush } = useGraph();
 	const selectedNode = useSelectedNode();
 	const selectedArtifact = useArtifact({ creatorNodeId: selectedNode?.id });
+	const selectedConnections = useConnections({
+		targetNodeId: selectedNode?.id,
+	});
 	const { open, setOpen, tab, setTab } = usePropertiesPanel();
 	const { executeNode } = useExecution();
 	const { addToast } = useToast();
@@ -373,6 +378,17 @@ export function PropertiesPanel() {
 										className="relative z-10 rounded-[8px] shadow-[0px_0px_3px_0px_#FFFFFF40_inset] py-[3px] px-[8px] bg-black-80 text-black-30 font-rosart text-[14px] disabled:bg-black-40"
 										onClick={() => {
 											const nodeId = createNodeId();
+											const addConnectionActions: GraphAction[] =
+												selectedConnections.map((connection) => ({
+													type: "addConnection",
+													input: {
+														connection: {
+															...connection,
+															id: createConnectionId(),
+															targetNodeId: nodeId,
+														},
+													},
+												}));
 											dispatch([
 												{
 													type: "addNode",
@@ -393,16 +409,12 @@ export function PropertiesPanel() {
 																topP: selectedNode.content.topP,
 																instruction: selectedNode.content.instruction,
 																system: selectedNode.content.system,
-																sources: selectedNode.content.sources.map(
-																	(source) => ({
-																		...source,
-																		id: createNodeHandleId(),
-																	}),
-																),
+																sources: selectedNode.content.sources,
 															},
 														},
 													},
 												},
+												...addConnectionActions,
 												{
 													type: "upsertArtifact",
 													input: {
