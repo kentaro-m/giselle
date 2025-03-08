@@ -407,7 +407,14 @@ export function PropertiesPanel() {
 													type: "upsertArtifact",
 													input: {
 														nodeId: nodeId,
-														artifact: selectedArtifact?.type === 'generatedArtifact' ? { ...selectedArtifact, id: createArtifactId(), creatorNodeId: nodeId } : null,
+														artifact:
+															selectedArtifact?.type === "generatedArtifact"
+																? {
+																		...selectedArtifact,
+																		id: createArtifactId(),
+																		creatorNodeId: nodeId,
+																	}
+																: null,
 													},
 												},
 												{
