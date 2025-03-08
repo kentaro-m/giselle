@@ -1,9 +1,6 @@
-import type { Node, TextGenerationNode } from "@giselle-sdk/data-type";
+import type { TextGenerationNode } from "@giselle-sdk/data-type";
 import clsx from "clsx/lite";
-import {
-	useGenerationController,
-	useWorkflowDesigner,
-} from "giselle-sdk/react";
+import { useNodeGenerations, useWorkflowDesigner } from "giselle-sdk/react";
 import { CommandIcon, CornerDownLeft } from "lucide-react";
 import { Tabs } from "radix-ui";
 import { useCallback, useMemo } from "react";
@@ -33,7 +30,10 @@ export function TextGenerationNodePropertiesPanel({
 }) {
 	const { data, updateNodeDataContent, updateNodeData, setUiNodeState } =
 		useWorkflowDesigner();
-	const { startGeneration, isGenerating } = useGenerationController();
+	const { startGeneration, isGenerating, stopGeneration } = useNodeGenerations({
+		nodeId: node.id,
+		origin: { type: "workspace", id: data.id },
+	});
 	const { all: connectedSources } = useConnectedSources(node);
 
 	const uiState = useMemo(() => data.ui.nodeState[node.id], [data, node.id]);
@@ -68,7 +68,7 @@ export function TextGenerationNodePropertiesPanel({
 					</>
 				}
 				name={node.name}
-				fallbackName={node.content.llm.model}
+				fallbackName={node.content.llm.id}
 				description={node.content.llm.provider}
 				onChangeName={(name) => {
 					updateNodeData(node, { name });
@@ -78,15 +78,25 @@ export function TextGenerationNodePropertiesPanel({
 						loading={isGenerating}
 						type="button"
 						onClick={() => {
-							generateText();
+							if (isGenerating) {
+								stopGeneration();
+							} else {
+								generateText();
+							}
 						}}
 						className="w-[150px]"
 					>
-						<span>{isGenerating ? "Generating..." : "Generate"}</span>
-						<kbd className="flex items-center text-[12px]">
-							<CommandIcon className="size-[12px]" />
-							<CornerDownLeft className="size-[12px]" />
-						</kbd>
+						{isGenerating ? (
+							<span>Stop</span>
+						) : (
+							<>
+								<span>Generate</span>
+								<kbd className="flex items-center text-[12px]">
+									<CommandIcon className="size-[12px]" />
+									<CornerDownLeft className="size-[12px]" />
+								</kbd>
+							</>
+						)}
 					</Button>
 				}
 			/>
@@ -128,7 +138,7 @@ export function TextGenerationNodePropertiesPanel({
 							>
 								{node.content.llm.provider === "openai" && (
 									<OpenAIModelPanel
-										openai={node.content.llm}
+										openaiLanguageModel={node.content.llm}
 										onModelChange={(value) =>
 											updateNodeDataContent(node, {
 												...node.content,
@@ -139,7 +149,7 @@ export function TextGenerationNodePropertiesPanel({
 								)}
 								{node.content.llm.provider === "google" && (
 									<GoogleModelPanel
-										google={node.content.llm}
+										googleLanguageModel={node.content.llm}
 										onModelChange={(value) =>
 											updateNodeDataContent(node, {
 												...node.content,
@@ -150,7 +160,7 @@ export function TextGenerationNodePropertiesPanel({
 								)}
 								{node.content.llm.provider === "anthropic" && (
 									<AnthropicModelPanel
-										anthropic={node.content.llm}
+										anthropicLanguageModel={node.content.llm}
 										onModelChange={(value) =>
 											updateNodeDataContent(node, {
 												...node.content,
@@ -183,7 +193,9 @@ export function TextGenerationNodePropertiesPanel({
 			</PanelGroup>
 			<KeyboardShortcuts
 				generate={() => {
-					generateText();
+					if (!isGenerating) {
+						generateText();
+					}
 				}}
 			/>
 		</PropertiesPanelRoot>

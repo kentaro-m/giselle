@@ -1,8 +1,6 @@
 "use client";
 
 import {
-	Background,
-	BackgroundVariant,
 	ReactFlow,
 	ReactFlowProvider,
 	Panel as XYFlowPanel,
@@ -19,7 +17,6 @@ import {
 	PanelGroup,
 	PanelResizeHandle,
 } from "react-resizable-panels";
-import bg from "../images/bg.png";
 import { KeyboardShortcuts } from "./keyboard-shortcuts";
 import { type GiselleWorkflowDesignerNode, nodeTypes } from "./node";
 import { PropertiesPanel } from "./properties-panel";
@@ -32,6 +29,7 @@ import {
 } from "./tool";
 import "@xyflow/react/dist/style.css";
 import { OutputId } from "@giselle-sdk/data-type";
+import { Background } from "../ui/background";
 import { edgeTypes } from "./connector";
 import { type ConnectorType, GradientDef } from "./connector/component";
 
@@ -101,10 +99,6 @@ function NodeCanvas() {
 			onNodesChange={(nodesChange) => {
 				nodesChange.map((nodeChange) => {
 					switch (nodeChange.type) {
-						case "select": {
-							setUiNodeState(nodeChange.id, { selected: nodeChange.selected });
-							break;
-						}
 						case "remove": {
 							for (const connection of data.connections) {
 								if (connection.outputNode.id !== nodeChange.id) {
@@ -133,10 +127,17 @@ function NodeCanvas() {
 					}
 				});
 			}}
-			onNodeClick={(event, node) => {
+			onNodeDoubleClick={(_event, nodeDoubleClicked) => {
+				for (const node of data.nodes) {
+					if (node.id === nodeDoubleClicked.id) {
+						setUiNodeState(node.id, { selected: true });
+					} else {
+						setUiNodeState(node.id, { selected: false });
+					}
+				}
 				const viewport = reactFlowInstance.getViewport();
 				const screenPosition = reactFlowInstance.flowToScreenPosition(
-					node.position,
+					nodeDoubleClicked.position,
 				);
 				reactFlowInstance.setViewport(
 					{
@@ -154,7 +155,9 @@ function NodeCanvas() {
 				});
 			}}
 			onPaneClick={(event) => {
-				event.preventDefault();
+				for (const node of data.nodes) {
+					setUiNodeState(node.id, { selected: false });
+				}
 				const position = reactFlowInstance.screenToFlowPosition({
 					x: event.clientX,
 					y: event.clientY,
@@ -233,113 +236,34 @@ function NodeCanvas() {
 						}
 						break;
 					case "addTextGenerationNode":
-						if (selectedTool.provider === undefined) {
+						if (selectedTool.languageModel === undefined) {
 							break;
 						}
-						switch (selectedTool.provider) {
-							case "openai":
-								addNode(
+						addNode(
+							{
+								type: "action",
+								content: {
+									type: "textGeneration",
+									llm: selectedTool.languageModel,
+								},
+								inputs: [],
+								outputs: [
 									{
-										type: "action",
-										content: {
-											type: "textGeneration",
-											llm: {
-												provider: "openai",
-												model: "gpt-4o",
-												temperature: 0.7,
-												topP: 1.0,
-												presencePenalty: 0.0,
-												frequencyPenalty: 0.0,
-											},
-										},
-										inputs: [],
-										outputs: [
-											{
-												id: OutputId.generate(),
-												label: "Output",
-											},
-										],
+										id: OutputId.generate(),
+										label: "Output",
 									},
-									options,
-								);
-								break;
-							case "anthropic":
-								addNode(
-									{
-										type: "action",
-										content: {
-											type: "textGeneration",
-											llm: {
-												provider: "anthropic",
-												model: "claude-3-5-sonnet-latest",
-												temperature: 0.7,
-												topP: 1.0,
-											},
-										},
-										inputs: [],
-										outputs: [
-											{
-												id: OutputId.generate(),
-												label: "Output",
-											},
-										],
-									},
-									options,
-								);
-								break;
-							case "google":
-								addNode(
-									{
-										type: "action",
-										content: {
-											type: "textGeneration",
-											llm: {
-												provider: "google",
-												model: "gemini-1.5-flash-latest",
-												temperature: 0.7,
-												topP: 1.0,
-												searchGrounding: false,
-											},
-										},
-										inputs: [],
-										outputs: [
-											{
-												id: OutputId.generate(),
-												label: "Output",
-											},
-											{
-												id: OutputId.generate(),
-												label: "Search Result",
-											},
-										],
-									},
-									options,
-								);
-								break;
-							default: {
-								const _exhaustiveCheck: never = selectedTool.provider;
-								throw new Error(`Unsupported provider: ${_exhaustiveCheck}`);
-							}
-						}
+								],
+							},
+							options,
+						);
 				}
 				reset();
 			}}
 		>
-			<Background
-				className="!bg-black-800"
-				lineWidth={0}
-				variant={BackgroundVariant.Lines}
-				style={{
-					backgroundImage: `url(${bg.src})`,
-					backgroundPositionX: "center",
-					backgroundPositionY: "center",
-					backgroundSize: "cover",
-				}}
-			/>
+			<Background />
 			{selectedTool?.category === "edit" && (
 				<FloatingNodePreview tool={selectedTool} />
 			)}
-
 			<XYFlowPanel position={"bottom-center"}>
 				<Toolbar />
 			</XYFlowPanel>
