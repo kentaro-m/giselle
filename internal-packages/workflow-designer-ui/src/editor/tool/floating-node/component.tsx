@@ -54,6 +54,16 @@ export function PreviewNode({ tool }: { tool: Tool }) {
 							preview
 						/>
 					);
+				case "image":
+					return (
+						<NodeComponent
+							title="Image"
+							nodeType="variable"
+							contentType="file"
+							fileCategory="image"
+							preview
+						/>
+					);
 				case "text":
 					return (
 						<NodeComponent
@@ -112,6 +122,15 @@ export function PreviewNode({ tool }: { tool: Tool }) {
 					throw new Error(`Unhandled provider: ${_exhaustiveCheck}`);
 				}
 			}
+		case "addGitHubNode":
+			return (
+				<NodeComponent
+					title="GitHub"
+					nodeType="variable"
+					contentType="github"
+					preview
+				/>
+			);
 		default: {
 			const _exhaustiveCheck: never = tool;
 			throw new Error(`Unhandled tool action: ${_exhaustiveCheck}`);
