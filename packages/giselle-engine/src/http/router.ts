@@ -4,10 +4,12 @@ import {
 	GenerationId,
 	GenerationOrigin,
 	NodeId,
+	OverrideNode,
 	QueuedGeneration,
 	RunId,
 	WorkflowId,
 	Workspace,
+	WorkspaceGitHubIntegrationSetting,
 	WorkspaceId,
 } from "@giselle-sdk/data-type";
 import { z } from "zod";
@@ -140,6 +142,45 @@ export const createJsonRouters = {
 			handler: async ({ input }) => {
 				const objectId = await giselleEngine.githubUrlToObjectId(input.url);
 				return JsonResponse.json({ objectId });
+			},
+		}),
+	upsertWorkspaceGitHubIntegrationSetting: (giselleEngine: GiselleEngine) =>
+		createHandler({
+			input: z.object({
+				workspaceGitHubIntegrationSetting: WorkspaceGitHubIntegrationSetting,
+			}),
+			handler: async ({ input }) => {
+				await giselleEngine.upsertGithubIntegrationSetting(
+					input.workspaceGitHubIntegrationSetting,
+				);
+				return new Response(null, { status: 204 });
+			},
+		}),
+	getWorkspaceGitHubIntegrationSetting: (giselleEngine: GiselleEngine) =>
+		createHandler({
+			input: z.object({
+				workspaceId: WorkspaceId.schema,
+			}),
+			handler: async ({ input }) => {
+				const workspaceGitHubIntegrationSetting =
+					await giselleEngine.getWorkspaceGitHubIntegrationSetting(
+						input.workspaceId,
+					);
+				return JsonResponse.json({
+					workspaceGitHubIntegrationSetting,
+				});
+			},
+		}),
+	runApi: (giselleEngine: GiselleEngine) =>
+		createHandler({
+			input: z.object({
+				workspaceId: WorkspaceId.schema,
+				workflowId: WorkflowId.schema,
+				overrideNodes: z.array(OverrideNode).optional(),
+			}),
+			handler: async ({ input }) => {
+				const result = await giselleEngine.runApi(input);
+				return new Response(result);
 			},
 		}),
 } as const;

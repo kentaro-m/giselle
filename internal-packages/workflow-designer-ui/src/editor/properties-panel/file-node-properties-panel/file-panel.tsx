@@ -38,14 +38,18 @@ class InvalidFileTypeError extends FileUploadError {
 	actualType: string;
 
 	constructor(expectedType: string[], actualType: string) {
-		super(`Invalid file type: ${actualType}`);
+		super(`Invalid file type: ${actualType || "unknown type"}`);
 		this.actualType = actualType;
 		this.expectedType = expectedType;
 		this.name = "InvalidFileTypeError";
-		this.message = `This node supports ${expectedType.join(", ")}, but got ${actualType}. ${this.suggestion()}`;
+		this.message = `This node supports ${expectedType.join(", ")}, but ${actualType ? `got ${actualType}.` : "the file type could not be determined."} ${this.suggestion()}`;
 	}
 
 	suggestion() {
+		if (!this.actualType) {
+			return "Please check if the file format is supported.";
+		}
+
 		switch (this.actualType) {
 			case "image/jpeg":
 			case "image/png":
@@ -99,8 +103,17 @@ export function FilePanel({ node, config }: FilePanelProps) {
 					isValid = false;
 					break;
 				}
+				// Get file extension if possible
+				let itemType = dataTransferItem.type;
+				const file = dataTransferItem.getAsFile();
+				if (!itemType && file) {
+					const extension = file.name.split(".").pop()?.toLowerCase();
+					if (extension === "md" || extension === "markdown") {
+						itemType = "text/markdown";
+					}
+				}
 				isValid = config.accept.some((accept) =>
-					new RegExp(accept).test(dataTransferItem.type),
+					new RegExp(accept).test(itemType),
 				);
 			}
 			return isValid;
@@ -115,11 +128,20 @@ export function FilePanel({ node, config }: FilePanelProps) {
 					throw new FileSizeExceededError();
 				}
 
+				// Determine MIME type from file extension if needed
+				let mimeType = file.type;
+				if (!mimeType) {
+					const extension = file.name.split(".").pop()?.toLowerCase();
+					if (extension === "md" || extension === "markdown") {
+						mimeType = "text/markdown";
+					}
+				}
+
 				const isValid = config.accept.some((accept) =>
-					new RegExp(accept).test(file.type),
+					new RegExp(accept).test(mimeType),
 				);
 				if (!isValid) {
-					throw new InvalidFileTypeError(config.accept, file.type);
+					throw new InvalidFileTypeError(config.accept, mimeType);
 				}
 			}
 		},
