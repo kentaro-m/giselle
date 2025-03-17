@@ -28,7 +28,9 @@ import {
 	useCallback,
 	useId,
 	useMemo,
+	useRef,
 	useState,
+	useTransition,
 } from "react";
 import { parse, remove } from "../actions";
 import { vercelBlobFileFolder } from "../constants";
@@ -95,6 +97,8 @@ import {
 } from "./select";
 import { Slider } from "./slider";
 import { Tooltip } from "./tooltip";
+import { useAgentId } from "../contexts/agent-id";
+import { copyFiles } from "@/app/(playground)/p/[agentId]/actions";
 
 function PropertiesPanelContentBox({
 	children,
@@ -260,6 +264,7 @@ DialogFooter.displayName = "DialogHeader";
 
 export function PropertiesPanel() {
 	const { graph, dispatch, flush } = useGraph();
+	const agentId = useAgentId();
 	const selectedNode = useSelectedNode();
 	const selectedArtifact = useArtifact({ creatorNodeId: selectedNode?.id });
 	const selectedConnections = useConnections({
@@ -268,6 +273,28 @@ export function PropertiesPanel() {
 	const { open, setOpen, tab, setTab } = usePropertiesPanel();
 	const { executeNode } = useExecution();
 	const { addToast } = useToast();
+	const copyFileAction = copyFiles.bind(null, agentId);
+	const formRef = useRef<HTMLFormElement>(null);
+	const [isPending, startTransition] = useTransition();
+
+	const handleConfirm = () => {
+		formRef.current?.requestSubmit();
+	};
+
+	const formAction = async (targetNode: Node) => {
+		startTransition(async () => {
+			const res = await copyFileAction(targetNode);
+			switch (res.result) {
+				case "success":
+					addToast({ message: "Success to copy files", type: "success" });
+					break;
+				case "error":
+					addToast({ message: "Failed to copy files", type: "error" });
+					break;
+			}
+		});
+	};
+	
 	return (
 		<div
 			className={clsx(
@@ -452,6 +479,36 @@ export function PropertiesPanel() {
 									>
 										Generate
 									</button>
+								)}
+								{selectedNode.content.type === "file" && (
+									<form
+									ref={formRef}
+									action={() => formAction(selectedNode)}
+									>
+									<button
+									type="button"
+									className="relative z-10 rounded-[8px] shadow-[0px_0px_3px_0px_#FFFFFF40_inset] py-[3px] px-[8px] bg-black-80 text-black-30 font-rosart text-[14px] disabled:bg-black-40"
+									disabled={isPending}
+									onClick={handleConfirm}
+								>
+									Copy
+								</button>
+								</form>
+								)}
+								{selectedNode.content.type === "files" && (
+								<form
+									ref={formRef}
+									action={() => formAction(selectedNode)}
+									>
+										<button
+										type="button"
+										className="relative z-10 rounded-[8px] shadow-[0px_0px_3px_0px_#FFFFFF40_inset] py-[3px] px-[8px] bg-black-80 text-black-30 font-rosart text-[14px] disabled:bg-black-40"
+										onClick={handleConfirm}
+										disabled={isPending}
+										>
+											Copy
+										</button>
+								</form>
 								)}
 							</div>
 						</div>
@@ -2207,6 +2264,18 @@ function FileListItem({
 					{fileData.status === "failed" && <p>Failed</p>}
 				</div>
 			</div>
+			{/* <Tooltip text="Copy">
+				<button
+					type="button"
+					className="hidden group-hover:block px-[4px] py-[4px] bg-transparent hover:bg-white/10 rounded-[8px] transition-colors mr-[2px] shrink-0"
+					onClick={() => {
+						// TODO
+					}}
+
+					>
+					<CopyIcon className="w-[24px] h-[24px] stroke-current stroke-[1px] " />
+					</button>
+			</Tooltip> */}
 			<Tooltip text="Remove">
 				<button
 					type="button"
