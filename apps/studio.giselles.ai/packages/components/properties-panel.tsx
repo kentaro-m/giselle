@@ -1,3 +1,4 @@
+import { copyFiles } from "@/app/(playground)/p/[agentId]/actions";
 import { DocumentIcon } from "@giselles-ai/icons/document";
 import { PanelCloseIcon } from "@giselles-ai/icons/panel-close";
 import { PanelOpenIcon } from "@giselles-ai/icons/panel-open";
@@ -34,6 +35,7 @@ import {
 } from "react";
 import { parse, remove } from "../actions";
 import { vercelBlobFileFolder } from "../constants";
+import { useAgentId } from "../contexts/agent-id";
 import { useDeveloperMode } from "../contexts/developer-mode";
 import { useExecution } from "../contexts/execution";
 import {
@@ -97,8 +99,6 @@ import {
 } from "./select";
 import { Slider } from "./slider";
 import { Tooltip } from "./tooltip";
-import { useAgentId } from "../contexts/agent-id";
-import { copyFiles } from "@/app/(playground)/p/[agentId]/actions";
 
 function PropertiesPanelContentBox({
 	children,
@@ -294,7 +294,7 @@ export function PropertiesPanel() {
 			}
 		});
 	};
-	
+
 	return (
 		<div
 			className={clsx(
@@ -481,34 +481,28 @@ export function PropertiesPanel() {
 									</button>
 								)}
 								{selectedNode.content.type === "file" && (
-									<form
-									ref={formRef}
-									action={() => formAction(selectedNode)}
-									>
-									<button
-									type="button"
-									className="relative z-10 rounded-[8px] shadow-[0px_0px_3px_0px_#FFFFFF40_inset] py-[3px] px-[8px] bg-black-80 text-black-30 font-rosart text-[14px] disabled:bg-black-40"
-									disabled={isPending}
-									onClick={handleConfirm}
-								>
-									Copy
-								</button>
-								</form>
-								)}
-								{selectedNode.content.type === "files" && (
-								<form
-									ref={formRef}
-									action={() => formAction(selectedNode)}
-									>
+									<form ref={formRef} action={() => formAction(selectedNode)}>
 										<button
-										type="button"
-										className="relative z-10 rounded-[8px] shadow-[0px_0px_3px_0px_#FFFFFF40_inset] py-[3px] px-[8px] bg-black-80 text-black-30 font-rosart text-[14px] disabled:bg-black-40"
-										onClick={handleConfirm}
-										disabled={isPending}
+											type="button"
+											className="relative z-10 rounded-[8px] shadow-[0px_0px_3px_0px_#FFFFFF40_inset] py-[3px] px-[8px] bg-black-80 text-black-30 font-rosart text-[14px] disabled:bg-black-40"
+											disabled={isPending}
+											onClick={handleConfirm}
 										>
 											Copy
 										</button>
-								</form>
+									</form>
+								)}
+								{selectedNode.content.type === "files" && (
+									<form ref={formRef} action={() => formAction(selectedNode)}>
+										<button
+											type="button"
+											className="relative z-10 rounded-[8px] shadow-[0px_0px_3px_0px_#FFFFFF40_inset] py-[3px] px-[8px] bg-black-80 text-black-30 font-rosart text-[14px] disabled:bg-black-40"
+											onClick={handleConfirm}
+											disabled={isPending}
+										>
+											Copy
+										</button>
+									</form>
 								)}
 							</div>
 						</div>

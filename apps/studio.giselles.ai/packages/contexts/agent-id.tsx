@@ -6,21 +6,21 @@ import { createContext, useContext } from "react";
 const AgentIdContext = createContext<AgentId | null>(null);
 
 export function useAgentId() {
-  const context = useContext(AgentIdContext);
-  if (!context) {
-    throw new Error("useAgentId must be used within an AgentIdProvider");
-  }
-  return context;
+	const context = useContext(AgentIdContext);
+	if (!context) {
+		throw new Error("useAgentId must be used within an AgentIdProvider");
+	}
+	return context;
 }
 
 export function AgentIdProvider({
-  children,
-  value,
+	children,
+	value,
 }: {
-  children: React.ReactNode;
-  value: AgentId | null;
+	children: React.ReactNode;
+	value: AgentId | null;
 }) {
-  return (
-    <AgentIdContext.Provider value={value}>{children}</AgentIdContext.Provider>
-  );
+	return (
+		<AgentIdContext.Provider value={value}>{children}</AgentIdContext.Provider>
+	);
 }
