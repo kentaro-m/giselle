@@ -99,6 +99,7 @@ import {
 } from "./select";
 import { Slider } from "./slider";
 import { Tooltip } from "./tooltip";
+import { useRouter } from "next/navigation";
 
 function PropertiesPanelContentBox({
 	children,
@@ -276,6 +277,7 @@ export function PropertiesPanel() {
 	const copyFileAction = copyFiles.bind(null, agentId);
 	const formRef = useRef<HTMLFormElement>(null);
 	const [isPending, startTransition] = useTransition();
+	const router = useRouter();
 
 	const handleConfirm = () => {
 		formRef.current?.requestSubmit();
@@ -287,6 +289,7 @@ export function PropertiesPanel() {
 			switch (res.result) {
 				case "success":
 					addToast({ message: "Success to copy files", type: "success" });
+					router.refresh();
 					break;
 				case "error":
 					addToast({ message: "Failed to copy files", type: "error" });
