@@ -20,6 +20,7 @@ import {
 	TrashIcon,
 	UndoIcon,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
 	type ComponentProps,
 	type DetailedHTMLProps,
@@ -99,7 +100,6 @@ import {
 } from "./select";
 import { Slider } from "./slider";
 import { Tooltip } from "./tooltip";
-import { useRouter } from "next/navigation";
 
 function PropertiesPanelContentBox({
 	children,
